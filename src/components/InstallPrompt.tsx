@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X } from 'lucide-react';
+import { Download, Smartphone } from 'lucide-react';
 
-export function InstallPrompt() {
+export function InstallAppButton() {
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    // Detect iOS
+    // Detect OS
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIosDevice);
+    setIsAndroid(/android/i.test(navigator.userAgent));
 
     // Detect if already installed (standalone mode)
     const isReadyStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
@@ -19,20 +20,9 @@ export function InstallPrompt() {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!isReadyStandalone) {
-        setShowPrompt(true);
-      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // If it's iOS and not standalone, we can choose to prompt them manually after a delay
-    if (isIosDevice && !isReadyStandalone) {
-      const timer = setTimeout(() => {
-        setShowPrompt(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -45,43 +35,33 @@ export function InstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
-        setShowPrompt(false);
       }
     } else if (isIOS) {
-      alert("Para instalar no iPhone: Toque no ícone de Compartilhar no navegador e selecione 'Adicionar à Tela de Início'.");
+      alert("Para instalar no iPhone:\n1. Toque no ícone de Compartilhar (quadrado com seta) na barra do navegador.\n2. Role para baixo e selecione 'Adicionar à Tela de Início'.");
+    } else if (isAndroid) {
+      alert("Para instalar no Android:\n1. Toque nos 3 pontinhos no navegador.\n2. Escolha 'Adicionar à tela inicial' ou 'Instalar aplicativo'.");
+    } else {
+       alert("Para instalar no Computador:\nClique no ícone de instalação (monitor pequeno com uma seta) na barra de endereços do seu navegador Chrome ou Edge.");
     }
   };
 
-  const handleClose = () => {
-    setShowPrompt(false);
-  };
-
-  if (!showPrompt || isStandalone) {
+  // Do not suggest installation if it's already running as an app
+  if (isStandalone) {
     return null;
   }
 
+  // Determine if it looks like a mobile device to emphasize the button size, optional
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 bg-white shadow-2xl rounded-2xl p-4 border border-teal-100 flex items-center justify-between transform transition-transform duration-300 translate-y-0">
-      <div className="flex items-center gap-3">
-        <div className="bg-emerald-100 p-2 rounded-xl">
-          <Download className="text-emerald-600 w-6 h-6" />
-        </div>
-        <div>
-          <h4 className="text-sm font-bold text-teal-900">Instalar Aplicativo</h4>
-          <p className="text-xs text-teal-700">Acesse mais rápido da sua tela inicial</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleInstallClick}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors"
-        >
-          Instalar
-        </button>
-        <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-600">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="mt-4 pt-4 border-t border-teal-100/50">
+      <button
+        type="button"
+        onClick={handleInstallClick}
+        className="w-full bg-white hover:bg-teal-50 text-teal-700 font-bold py-3 px-4 rounded-xl shadow-sm border border-teal-200 transition-all flex items-center justify-center gap-2"
+      >
+        <Smartphone className="w-5 h-5 text-teal-600" />
+        Instalar Aplicativo no Celular
+      </button>
+      <p className="text-center text-[10px] text-teal-600/70 mt-2 font-medium">Acesse o sistema diretamente da tela inicial sem abrir o navegador.</p>
     </div>
   );
 }

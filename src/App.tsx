@@ -7,6 +7,7 @@ import { ContractPreview } from './components/ContractPreview';
 import { ContractPDFDocument } from './components/ContractPDFDocument';
 import { initialContractData, ContractData } from './types';
 import { pdf } from '@react-pdf/renderer';
+import { InstallAppButton } from './components/InstallPrompt';
 
 import html2pdf from 'html2pdf.js';
 
@@ -776,6 +777,8 @@ export default function App() {
             {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'ENTRAR NO PORTAL'}
           </button>
         </form>
+
+        <InstallAppButton />
       </div>
     </div>
   );
