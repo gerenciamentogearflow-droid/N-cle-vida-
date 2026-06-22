@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './lib/firebase';
-import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { Leaf, Sun, Heart, Loader2, ArrowLeft, Users, ShieldCheck, User, Image as ImageIcon, FileText, Download, MessageSquare, Printer, List } from 'lucide-react';
 import { ContractForm } from './components/ContractForm';
 import { ContractPreview } from './components/ContractPreview';
@@ -196,6 +196,38 @@ export default function App() {
   // Logo Upload State
   const [uploadMsg, setUploadMsg] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  // Dev Delete Contracts State
+  const [deleteMsg, setDeleteMsg] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handleDeleteAllContracts = async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteMsg('');
+    try {
+      const contratosRef = collection(db, 'contratos');
+      const q = query(contratosRef);
+      const snapshot = await getDocs(q);
+
+      const deletePromises = snapshot.docs.map(document => deleteDoc(doc(db, 'contratos', document.id)));
+      await Promise.all(deletePromises);
+
+      setDeleteMsg(`${snapshot.size} contrato(s) excluído(s) com sucesso.`);
+      setSavedContracts([]); // Clear local state just in case
+    } catch (err) {
+      console.error(err);
+      setDeleteMsg('Erro ao excluir os contratos.');
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -448,6 +480,43 @@ export default function App() {
                 {logoUrl && (
                   <div className="mt-4 flex justify-center bg-slate-900 p-4 rounded-xl border border-slate-700">
                     <img src={logoUrl} alt="Logo Preview" className="max-h-20 w-auto object-contain" />
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 space-y-4">
+                <p className="text-slate-300 text-xs font-mono italic opacity-80 mb-4 underline">Gerenciar Dados: Contratos</p>
+                <div>
+                  {!confirmDelete ? (
+                    <button
+                      onClick={handleDeleteAllContracts}
+                      disabled={isDeleting}
+                      className="w-full flex justify-center items-center bg-red-900/40 hover:bg-red-800 text-red-100 font-bold py-3 rounded uppercase text-[10px] tracking-widest transition-colors disabled:opacity-50 border border-red-500/30"
+                    >
+                      Apagar Todos os Contratos Emitidos
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleDeleteAllContracts}
+                        disabled={isDeleting}
+                        className="flex-1 flex justify-center items-center bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded uppercase text-[10px] tracking-widest transition-colors disabled:opacity-50 border border-red-500"
+                      >
+                        {isDeleting ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirmar Exclusão'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(false)}
+                        disabled={isDeleting}
+                        className="flex-1 flex justify-center items-center bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3 rounded uppercase text-[10px] tracking-widest transition-colors disabled:opacity-50 border border-slate-500"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {deleteMsg && (
+                  <div className={`text-sm text-center p-3 rounded font-mono mt-4 ${deleteMsg.includes('Erro') ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'}`}>
+                    {deleteMsg}
                   </div>
                 )}
               </div>
