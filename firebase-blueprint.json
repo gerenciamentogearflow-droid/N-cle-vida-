@@ -1,0 +1,42 @@
+{
+  "collections": [
+    {
+      "collection_name": "users",
+      "model_type": "Data",
+      "description": "Stores user credentials created by the Dev.",
+      "fields": [
+        { "name": "username", "type": "String", "description": "The login username of the user" },
+        { "name": "password", "type": "String", "description": "The password for the user" },
+        { "name": "createdAt", "type": "Timestamp", "description": "When the user was created" }
+      ],
+      "rules": [
+        {
+          "type": "Read",
+          "access": "Public"
+        },
+        {
+          "type": "Create",
+          "access": "Public"
+        }
+      ]
+    },
+    {
+      "collection_name": "settings",
+      "model_type": "Data",
+      "description": "Stores general app settings like logo.",
+      "fields": [
+        { "name": "logoUrl", "type": "String", "description": "The custom logo base64" }
+      ],
+      "rules": [
+        {
+          "type": "Read",
+          "access": "Public"
+        },
+        {
+          "type": "Write",
+          "access": "Public"
+        }
+      ]
+    }
+  ]
+}

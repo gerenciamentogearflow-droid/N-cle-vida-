@@ -1,0 +1,6 @@
+{
+  "name": "Núcle Vida",
+  "description": "Aplicativo de clínica de reabilitação. Contém tela de login, área dev e integração com banco de dados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
